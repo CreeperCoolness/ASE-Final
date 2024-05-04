@@ -1,0 +1,30 @@
+
+
+body {
+background-color: #00FA9A;
+}
+
+#title{
+color: purple;
+}
+
+#favorite{
+color: #4682B4;
+}
+
+#next{
+color: white;
+
+}
+
+#list{
+	color: #FF69B4;
+	font-size: 20px;
+}
+
+#page2{
+	background-color: #7FFFD4;
+}
+#summary{
+	background-color:white;
+}

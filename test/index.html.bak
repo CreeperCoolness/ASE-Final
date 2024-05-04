@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Home</title>
+		<link rel="stylesheet" href="css/bootstrap.css">
+		<link rel="stylesheet" href ="Midterm.css">
+		<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+		
+	</head>
+	<body>
+		
+		<div class="container mt-5" id="shopCardsContainer">
+			<button type="button" class="btn btn-warning" data-toggle="modal" data-target="#addDonutShopModal" name="add" >Add Donut Shop</button>
+			<button id ="account" href ="Sign_in.html" class="btn btn-dark mb-2">account</button>
+			<ul id="list" class="list-group"></ul>
+		</div>
+		<div class="modal fade" id="addDonutShopModal" tabindex="-1" role="dialog" aria-labelledby="addDonutShopModal" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="exampleModalLabel">Donut Shop Info</h5>
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+					</div>
+					<div class="modal-body">
+						<p>Name: <textarea class="form-control" id="bname"></textarea></p>
+						<p>Address: <textarea class="form-control" id="baddress"></textarea></p>
+						<p>Distance: <textarea class="form-control" id="bdistance"></textarea></p>
+						<p>Hours: <textarea class="form-control" id="bhours"></textarea></p>
+						<p>Price Range: <textarea class="form-control" id="bprice"></textarea></p>
+						<p>Image: <textarea class="form-control" id="bimage"></textarea></p>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+						<button id="btn-donutshop-add" type="button" class="btn btn-primary">Add Donut Shop</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	<div  class="container" id="actions"></div>
+
+    <script>
+	
+		var start = 0;
+		var end = 3;
+		
+		window.addEventListener('load', function() {
+			fetch('/donutshop')
+			.then(response => response.json())
+			.then(data => {
+				shops = data;
+				generateshopCards();
+			})
+			.catch(error => {
+				console.error('Error fetching data:', error);
+			});
+		});
+
+	
+		
+			
+		function generateCard(shop) {
+		
+			return `
+				<div class="col-sm">
+					<div class="card" style="width: 18rem;">
+						<img src="${shop.image}" class="card-img-top" alt="picture of ${shop.name}" data-toggle="modal" data-target="#exampleModal" onclick="lol(${shop.index})">
+							<div class="card-body">
+								<h5 class="card-title" data-toggle="modal" data-target="#exampleModal" onclick="lol(${shop.index})">${shop.name}</h5>
+								<button type="button" class="btn btn-danger" name="delete">Delete</button>
+								<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" >
+									<div class="modal-dialog" role="document">
+										<div class="modal-content">
+											<div class="modal-header">
+												<h5 class="modal-title" id="exampleModalLabel">Donut Shop Info</h5>
+												<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+													<span aria-hidden="true">&times;</span>
+												</button>
+											</div>
+											<div class="modal-body" id="pop">
+											</div>
+											<div class="modal-footer">
+												<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+												<button type="button" class="btn btn-primary" id="ji">More Donut Shop Info</button>
+												<button type="button" class="btn btn-primary" name="edit">Edit</button>
+												<button type="button" class="btn btn-primary" id="save">Save Change</button>
+												
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+					</div>
+                </div>
+            `;}
+			
+			
+		$(document).on('click', 'button[name=delete]', function() {
+    var index = $(this).closest('.card').find('.card-img-top').attr('onclick').match(/\d+/)[0];
+    console.log("Index of the donut shop to be deleted:", index);
+
+   
+    $(this).closest('.col-sm').remove();
+
+    
+    var indexToRemove = shops.findIndex(shop => shop.index == index);
+    if (indexToRemove !== -1) {
+        shops.splice(indexToRemove, 1);
+    }
+
+   
+    fetch(`/donutshop/${index}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(shops), 
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Data updated successfully:', data);
+    })
+    .catch(error => {
+        console.error('Error updating data:', error);
+    });
+});
+
+
+			
+		$(document).on('click', 'button[name=delete1]', function() {
+    var name = $(this).siblings('p:eq(0)').text().split(': ')[1];
+	console.log(name);
+    $(this).closest('.list-group-item').remove();
+
+    
+    var indexToRemove = animals.findIndex(animal => animal.name === name);
+    if (indexToRemove !== -1) {
+        
+        animals.splice(indexToRemove, 1);
+
+       
+        fetch(`/donutshop/${index}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(animals), 
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Data updated successfully:', data);
+        })
+        .catch(error => {
+            console.error('Error updating data:', error);
+        });
+    } else {
+        console.error('Animal not found in the data structure.');
+    }
+});
+	
+		
+		
+		function lol(index) {
+			var shop = shops.find(a => a.index === index);
+			var modalBody = document.getElementById("pop");
+			$("#save").hide();
+			modalBody.innerHTML = `
+				<p>Name: ${shop.name}</p>
+				<p>image: ${shop.image}</p>
+				<p>Address: ${shop.address}</p>
+				<p>Distance: ${shop.distance}</p>
+				<p>Hours: ${shop.hours}</p>
+				<p>Price Range: ${shop.price}</p>`;
+    
+		document.getElementById("ji").addEventListener("click", function() {
+    window.location.href = `detail.html?index=${index}`;
+});
+
+			
+		$(document).off('click', 'button[name=edit]').on('click', 'button[name=edit]', function() {
+		
+    $("#save").show();
+    modalBody.innerHTML = `
+        <p>Name: <textarea id="aname">${shop.name}</textarea></p>
+        <p>Address: <textarea id="aaddress">${shop.address}</textarea></p>
+        <p>Distance: <textarea id="adistance">${shop.distance}</textarea></p>
+        <p>Hours: <textarea id="ahours">${shop.hours}</textarea></p>
+        <p>Price Range: <textarea id="aprice">${shop.price}</textarea></p>
+        <p>Image URL: <textarea id="aimage">${shop.image}</textarea></p>`;
+        
+    document.getElementById("aname").value = shop.name;
+    document.getElementById("aaddress").value = shop.address;
+    document.getElementById("adistance").value = shop.distance;
+    document.getElementById("ahours").value = shop.hours;
+    document.getElementById("aprice").value = shop.price;
+    document.getElementById("aimage").value = shop.image;
+});
+
+
+		$(document).off('click', '#save').on('click', '#save', function() {
+    $("#save").hide();
+    var newname = document.getElementById("aname").value;
+    var newaddress = document.getElementById("aaddress").value;
+    var newdistance = document.getElementById("adistance").value;
+    var newhours = document.getElementById("ahours").value;
+    var newprice = document.getElementById("aprice").value;
+    var newImage = document.getElementById("aimage").value;
+
+    shop.name = newname;
+    shop.address = newaddress;
+    shop.distance = newdistance;
+    shop.hours = newhours;
+    shop.price = newprice;
+    shop.image = newImage;
+	console.log(`${shop.index}`);
+    var modalBody = document.getElementById("pop");
+    modalBody.innerHTML = `
+        <p>Name: ${shop.name}</p>
+		<p>image: ${shop.image}</p>
+        <p>Address: ${shop.address}</p>
+        <p>Distance: ${shop.distance}</p>
+        <p>Hours: ${shop.hours}</p>
+        <p>Price Range: ${shop.price}</p>
+        <p>Image URL: ${shop.image}</p>`;
+		
+		let updatedData = {
+            name: newname,
+            image: newImage,
+            address: newaddress,
+            distance: newdistance,
+            hours: newhours,
+            price: newprice,
+			index: `${shop.index}`
+        };
+	
+
+    fetch(`/donutshop/${shop.index}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Data updated successfully:', data);
+    })
+    .catch(error => {
+        console.error('Error updating data:', error);
+    });
+});
+
+;}
+
+	   
+        function generateshopCards() {
+    var container = document.getElementById("shopCardsContainer");
+    
+    var row;
+
+    for (let i = start; i < Math.min(start + end, shops.length); i++) {
+        if (i % 3 === 0) {
+            
+            row = document.createElement('div');
+            row.classList.add('row');
+            container.appendChild(row);
+        }
+
+        var shopCardHTML = generateCard(shops[i]);
+        var col = document.createElement('div');
+        col.classList.add('col-sm');
+        col.innerHTML = shopCardHTML;
+        row.appendChild(col);
+    }
+
+    if (start + end > shops.length) loadMoreButton.hidden = true;
+}
+
+		
+		let loadMoreButton = document.createElement('button');
+		loadMoreButton.classList.add('btn');
+		loadMoreButton.classList.add('btn-secondary');
+		loadMoreButton.innerText = 'Load More';
+		
+		loadMoreButton.addEventListener('click',function(){
+			console.log('clicked');
+			start+=3;
+			generateshopCards();
+		});
+		
+		$(document).on('click', '#btn-donutshop-add', function() {
+   
+    let name = $('#bname').val();
+    let image = $('#bimage').val();
+    let address = $('#baddress').val();
+    let distance = $('#bdistance').val();
+    let hours = $('#bhours').val();
+    let price = $('#bprice').val();
+    let newIndex = shops.length > 0 ? shops[shops.length - 1].index + 1 : 1;
+
+    let newDonutShop = {
+        name: name,
+        image: image,
+        address: address,
+        distance: distance,
+        price: price,
+        hours: hours,
+        index: newIndex
+    };
+
+    
+    fetch('/donutshop', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newDonutShop),
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('New Donut Shop added successfully:', data);
+       
+        shops.push(newDonutShop);
+        let newShopCardHTML = generateCard(newDonutShop);
+        let newRow = document.createElement('div');
+        newRow.classList.add('row');
+        newRow.innerHTML = newShopCardHTML;
+        $('#shopCardsContainer').append(newRow);
+        $('#addDonutShopModal').modal('hide');
+    })
+    .catch(error => {
+        console.error('Error adding new Donut Shop:', error);
+    });
+});
+
+		$(document).on('click', 'button[name=edit1]', function() {
+    let listItem = $(this).closest('.list-group-item');
+    let name = listItem.find('p:eq(0)').text().split(': ')[1];
+    let address = listItem.find('p:eq(1)').text().split(': ')[1];
+    let distance = listItem.find('p:eq(2)').text().split(': ')[1];
+    let hours = listItem.find('p:eq(3)').text().split(': ')[1];
+    let price = listItem.find('p:eq(4)').text().split(': ')[1];
+    let image = listItem.find('p:eq(5)').text().split(': ')[1];
+
+    listItem.html(`
+        <p>Name: <textarea class="form-control">${name}</textarea></p>
+        <p>image: <textarea class="form-control">${image}</textarea></p>
+        <p>Address: <textarea class="form-control">${address}</textarea></p>
+        <p>Distance: <textarea class="form-control">${distance}</textarea></p>
+        <p>Hours: <textarea class="form-control">${hours}</textarea></p>
+        <p>Price Range: <textarea class="form-control">${price}</textarea></p>
+        <button type="button" class="btn btn-danger" name="delete1">Delete</button>
+        <button type="button" class="btn btn-primary" name="save1">Save</button>
+    `);
+
+    $(document).off('click', 'button[name=save1]').on('click', 'button[name=save1]', function() {
+        let editedListItem = $(this).closest('.list-group-item');
+        let newName = editedListItem.find('textarea:eq(0)').val();
+        let newImage = editedListItem.find('textarea:eq(1)').val();
+        let newAddress = editedListItem.find('textarea:eq(2)').val();
+        let newDistance = editedListItem.find('textarea:eq(3)').val();
+        let newHours = editedListItem.find('textarea:eq(4)').val();
+        let newPrice = editedListItem.find('textarea:eq(5)').val();
+
+        let index = editedListItem.index(); 
+        if (index !== -1) {
+            shops[index].name = newName;
+            shops[index].image = newImage;
+            shops[index].address = newAddress;
+            shops[index].distance = newDistance;
+            shops[index].hours = newHours;
+            shops[index].price = newPrice;
+
+            fetch('', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(shops),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Data updated successfully:', data);
+            })
+            .catch(error => {
+                console.error('Error updating data:', error);
+            });
+
+            editedListItem.html(`
+                <p>Name: ${newName}</p>
+                <p>Image: ${newImage}</p>
+                <p>Address: ${newAddress}</p>
+                <p>Distance: ${newDistance}</p>
+                <p>Hours: ${newHours}</p>
+                <p>Price Range: ${newPrice}</p>
+                <button type="button" class="btn btn-danger" name="delete1">Delete</button>
+                <button type="button" class="btn btn-primary" name="edit1">Edit</button>
+            `);
+        } else {
+            console.error('Shop not found in the list.');
+        }
+    });
+});
+		document.querySelector('#actions').append(loadMoreButton);
+        
+		
+    </script>
+</body>
+</html>
